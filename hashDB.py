@@ -2,6 +2,16 @@ import hashlib
 import linecache
 import pymysql
 import base64
+import os,json
+
+# 读取文件配置
+def getConfig():
+    path = os.path.dirname(os.path.realpath(__file__))
+    configfilepath = path + '/config.json'
+    with open(configfilepath,'r') as file:
+        config = file.read().replace('\n','')
+        config = json.loads(config)
+    return config
 
 # 改变文件编码utf-8 防止gbk编码文件无法打开
 def encodeFile(path):
@@ -87,38 +97,47 @@ def hashDB(s,f):
     f.write('base: ' + base+'\n')
     f.write('\n\n')
 
+    # 读取配置
+    config = getConfig()
+    ip = config['host']['ip']
+    username = config['host']['username']
+    password = config['host']['password']
+    dbname = config['db']['database']
+    tablename = config['db']['table']
     # 插入数据库
     # # 打开数据库连接
-    # db = pymysql.connect("localhost", "root", "431879", "hash")
-    # # 使用cursor()方法获取操作游标
-    # cursor = db.cursor()
-    # # SQL 语句
-    # sql = "insert into hash(pw,md5,sha1,sha224,sha256,sha384,sha512,blake2b,blake2s,sha3_224,sha3_256,sha3_384,sha3_512,base64) \
-    #       VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" \
-    #       %(s,md5,sha1,sha224,sha256,sha384,sha512,blake2b,blake2s,sha3_224,sha3_256,sha3_384,sha3_512,base)
-    #
-    # try:
-    #     # 执行SQL语句
-    #     cursor.execute(sql)
-    #     # 执行sql语句
-    #     db.commit()
-    #     # 打印提示
-    #     print('插入成功')
-    # except:
-    #     # 发生错误时回滚
-    #     db.rollback()
-    #     # 打印提示
-    #     print('插入失败')
-    # # 关闭数据库连接
-    # db.close()
+    db = pymysql.connect(ip, username, password, dbname)
+    # 使用cursor()方法获取操作游标
+    cursor = db.cursor()
+    # SQL 语句
+    sql = "insert into "+tablename+"(pw,md5,sha1,sha224,sha256,sha384,sha512,blake2b,blake2s,sha3_224,sha3_256,sha3_384,sha3_512,base64) \
+          VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" \
+          %(s,md5,sha1,sha224,sha256,sha384,sha512,blake2b,blake2s,sha3_224,sha3_256,sha3_384,sha3_512,base)
+
+    try:
+        # 执行SQL语句
+        cursor.execute(sql)
+        # 执行sql语句
+        db.commit()
+        # 打印提示
+        print('插入成功')
+    except:
+        # 发生错误时回滚
+        db.rollback()
+        # 打印提示
+        print('插入失败')
+    # 关闭数据库连接
+    db.close()
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # s = 'root1234'
-    # hashDB(s)
-    path = 'D:\\1.txt'
-    pws = getLisOfPW(path)
-    for pw in pws:
-        hashDB(pw)
+    # f = open('1.txt','w')
+    # hashDB(s,f)
+
+
+    # pws = getLisOfPW(path)
+    # for pw in pws:
+    #     hashDB(pw)
 
 
